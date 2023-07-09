@@ -35,7 +35,5 @@ gripper_controller:
   type: effort_controllers/JointTrajectoryController
   joints:
     - left_finger
-    - right_finger
   gains:
     left_finger: {p: 100.0,  d: 1.0, i: 0.0}
-    right_finger: {p: 100.0,  d: 1.0, i: 0.0}

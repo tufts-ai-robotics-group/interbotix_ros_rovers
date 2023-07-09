@@ -1,6 +1,25 @@
 <?xml version="1.0"?>
 <robot name="mobile_wx200" xmlns:xacro="http://ros.org/wiki/xacro">
-
+  <!-- CUSTOM CODE: macro, mimic_joint_plugin to support gripper -->
+  <xacro:macro name="mimic_joint_plugin_gazebo" params="name_prefix parent_joint mimic_joint has_pid:=false multiplier:=1.0 offset:=0 sensitiveness:=0.0 max_effort:=1.0 robot_namespace:=''">
+    <gazebo>
+      <plugin name="${name_prefix}mimic_joint_plugin" filename="libroboticsgroup_upatras_gazebo_mimic_joint_plugin.so">
+        <joint>${parent_joint}</joint>
+        <mimicJoint>${mimic_joint}</mimicJoint>
+        <xacro:if value="${has_pid}">                     <!-- if set to true, PID parameters from "/gazebo_ros_control/pid_gains/${mimic_joint}" are loaded -->
+          <hasPID />
+        </xacro:if>
+        <multiplier>${multiplier}</multiplier>
+        <offset>${offset}</offset>
+        <sensitiveness>${sensitiveness}</sensitiveness>   <!-- if absolute difference between setpoint and process value is below this threshold, do nothing; 0.0 = disable [rad] -->
+        <maxEffort>${max_effort}</maxEffort>              <!-- only taken into account if has_pid:=true [Nm] -->
+        <xacro:unless value="${robot_namespace == ''}">
+          <robotNamespace>${robot_namespace}</robotNamespace>
+        </xacro:unless>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+  <!-- END CUSTOM CODE -->
   <link name="$(arg robot_name)/arm_base_link">
     <visual>
       <origin rpy="${pi/2} 0 ${pi/2}" xyz="-0.095773 0 -0.10565023"/>
@@ -403,6 +422,10 @@
         <dynamics friction="0.1"/>
         <mimic joint="left_finger" multiplier="-1" offset="0"/>
       </joint>
+
+      <xacro:mimic_joint_plugin_gazebo name_prefix="right_finger"
+        parent_joint="left_finger" mimic_joint="right_finger"
+        has_pid="false" multiplier="-1.0" max_effort="10.0" />
 
       <transmission name="trans_right_finger">
         <type>transmission_interface/SimpleTransmission</type>
